@@ -1,42 +1,41 @@
 package com.yayanheryanto.startnotes;
 
-import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.ContactsContract;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
 import android.support.v4.content.res.ResourcesCompat;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
-import android.view.View;
-import android.support.design.widget.NavigationView;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
+import android.view.View;
 
-import com.github.clans.fab.FloatingActionButton;
-import com.github.clans.fab.FloatingActionMenu;
 import com.yayanheryanto.startnotes.adapter.TextNotesAdapter;
 import com.yayanheryanto.startnotes.database.DBHelper;
 import com.yayanheryanto.startnotes.model.TextNotes;
 
+import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private Toolbar toolbar;
-    private FloatingActionMenu fabMenu;
-    private FloatingActionButton fabText, fabImage, fabCall;
+    private FloatingActionButton fab;
     private DrawerLayout drawer;
     private NavigationView navigationView;
     public static final int PICK_CONTACT = 1;
@@ -44,6 +43,7 @@ public class MainActivity extends AppCompatActivity
     private RecyclerView.LayoutManager layoutManager;
     private TextNotesAdapter adapter;
     private SwipeRefreshLayout swipeRefresh;
+    private DBHelper db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,10 +59,26 @@ public class MainActivity extends AppCompatActivity
         initDb();
         setPostRefresh();
         setSwipeRefresh();
+
+//        Calendar cal = Calendar.getInstance(TimeZone.getDefault(), Locale.getDefault());
+//
+//        cal.set(Calendar.DATE,17);  //1-31
+//        cal.set(Calendar.MONTH,Calendar.SEPTEMBER);  //first month is 0!!! January is zero!!!
+//        cal.set(Calendar.YEAR,2017);//year...
+//
+//        cal.set(Calendar.HOUR_OF_DAY, 10);  //HOUR
+//        cal.set(Calendar.MINUTE, 33);       //MIN
+//        //cal.set(Calendar.SECOND, 10);       //SEC
+//
+//        Intent intent = new Intent(MainActivity.this, CreateNotes.class);
+//        PendingIntent pendingIntent = PendingIntent.getService(MainActivity.this, 0,intent, 0);
+//
+//        AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+//        am.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), pendingIntent);
     }
 
     private void initDb() {
-        DBHelper db = new DBHelper(this);
+        db = new DBHelper(this);
         List<TextNotes> notes = db.getAllNotes();
         adapter = new TextNotesAdapter(this, notes);
         recyclerView.setAdapter(adapter);
@@ -94,10 +110,7 @@ public class MainActivity extends AppCompatActivity
 
     private void bindingData() {
         toolbar = (Toolbar) findViewById(R.id.toolbar);
-        fabMenu = (FloatingActionMenu) findViewById(R.id.fabMenu);
-        fabText = (FloatingActionButton) findViewById(R.id.fabText);
-        fabImage = (FloatingActionButton) findViewById(R.id.fabImage);
-        fabCall = (FloatingActionButton) findViewById(R.id.fabCall);
+        fab = (FloatingActionButton) findViewById(R.id.fab);
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         navigationView = (NavigationView) findViewById(R.id.nav_view);
         recyclerView = (RecyclerView) findViewById(R.id.recyclerNote);
@@ -108,6 +121,22 @@ public class MainActivity extends AppCompatActivity
     private void setRecyclerView(){
         layoutManager = new GridLayoutManager(this,2);
         recyclerView.setLayoutManager(layoutManager);
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener(){
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy){
+                if (dy > 0 ||dy<0 && fab.isShown())
+                    fab.hide();
+            }
+
+            @Override
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+
+                if (newState == RecyclerView.SCROLL_STATE_IDLE){
+                    fab.show();
+                }
+                super.onScrollStateChanged(recyclerView, newState);
+            }
+        });
     }
 
     private void setToolbar() {
@@ -115,53 +144,14 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void setFab(){
-        fabText.setOnClickListener(new View.OnClickListener() {
+        fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                fabMenu.close(true);
                 Intent intent = new Intent(MainActivity.this, CreateNotes.class);
                 startActivity(intent);
             }
         });
 
-        fabImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                fabMenu.close(true);
-                Intent intent = new Intent(MainActivity.this, CreateListNotes.class);
-                startActivity(intent);
-            }
-        });
-
-        fabCall.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                fabMenu.close(true);
-                Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
-                startActivityForResult(intent, PICK_CONTACT);
-            }
-        });
-    }
-
-    @Override
-    public void onActivityResult(int reqCode, int resultCode, Intent data) {
-        super.onActivityResult(reqCode, resultCode, data);
-
-        switch (reqCode) {
-            case (PICK_CONTACT) :
-                if (resultCode == Activity.RESULT_OK) {
-                    Uri contactData = data.getData();
-                    Cursor c =  getContentResolver().query(contactData, null, null, null, null);
-                    if (c.moveToFirst()) {
-                        String name = c.getString(c.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
-                        Log.d("Contact", name);
-                        // TODO Whatever you want to do with the selected contact name.
-                    }
-                }else if (resultCode==Activity.RESULT_CANCELED){
-                    Toast.makeText(this, "Contact Not Selected", Toast.LENGTH_SHORT).show();
-                }
-                break;
-        }
     }
 
     private void setDrawer(){
@@ -202,6 +192,7 @@ public class MainActivity extends AppCompatActivity
         if (id == R.id.action_search) {
             return true;
         }else if (id==R.id.action_change){
+            swipeRefresh.setRefreshing(true);
             if (item.getIcon().getConstantState()==getResources().getDrawable(R.drawable.ic_action_database).getConstantState()){
                 item.setIcon(ResourcesCompat.getDrawable(getResources(),R.drawable.ic_action_tiles_small,null));
                 layoutManager = new LinearLayoutManager(this);
@@ -211,6 +202,7 @@ public class MainActivity extends AppCompatActivity
                 layoutManager = new GridLayoutManager(this,2);
                 recyclerView.setLayoutManager(layoutManager);
             }
+            swipeRefresh.setRefreshing(false);
         }
 
         return super.onOptionsItemSelected(item);
@@ -220,12 +212,18 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
+        item.setCheckable(false);
         int id = item.getItemId();
 
         if (id == R.id.nav_notes) {
-            // Handle the camera action
+            swipeRefresh.setRefreshing(true);
+            initDb();
+            swipeRefresh.setRefreshing(false);
         } else if (id == R.id.nav_reminder) {
 
+        }else if (id == R.id.nav_about){
+            Intent intent = new Intent(MainActivity.this, About.class);
+            startActivity(intent);
         }
 
         drawer.closeDrawer(GravityCompat.START);

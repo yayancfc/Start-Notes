@@ -35,6 +35,7 @@ public class TextNotesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     public static final int TYPE_TEXT_12 = 12;
     public static final int TYPE_TEXT_13 = 13;
     public static final int TYPE_TEXT_14 = 14;
+    public static final int TYPE_TEXT_15 = 15;
 
     public static final String NOTES_DATA = "data";
 
@@ -377,7 +378,6 @@ public class TextNotesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         }else if (!notes.getTitle().equals("") && !notes.getDesccription().equals("") && !notes.getLocation().equals("") && notes.getColor()!=0){
             viewType = TYPE_TEXT_14;
         }
-
         return viewType;
     }
 
@@ -620,4 +620,5 @@ public class TextNotesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
         }
     }
+
 }

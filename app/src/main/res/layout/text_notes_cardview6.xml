@@ -34,7 +34,8 @@
                 android:text="Title"
                 android:textSize="20dp"
                 android:textStyle="bold"
-                android:gravity="center"/>
+                android:gravity="center"
+                android:padding="10dp"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -54,7 +55,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:text="Lokasi" />
+                    android:text="Lokasi"
+                    android:padding="10dp"/>
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>

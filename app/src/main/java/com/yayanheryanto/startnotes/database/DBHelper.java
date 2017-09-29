@@ -18,6 +18,8 @@ import static com.yayanheryanto.startnotes.database.DBContract.COLUMN_DATE;
 import static com.yayanheryanto.startnotes.database.DBContract.COLUMN_DESCRIPTION;
 import static com.yayanheryanto.startnotes.database.DBContract.COLUMN_ID;
 import static com.yayanheryanto.startnotes.database.DBContract.COLUMN_LOCATION;
+import static com.yayanheryanto.startnotes.database.DBContract.COLUMN_NAME;
+import static com.yayanheryanto.startnotes.database.DBContract.COLUMN_TELEPHONE;
 import static com.yayanheryanto.startnotes.database.DBContract.COLUMN_TIME;
 import static com.yayanheryanto.startnotes.database.DBContract.COLUMN_TITLE;
 import static com.yayanheryanto.startnotes.database.DBContract.DATABASE_NOTES;
@@ -29,7 +31,7 @@ import static com.yayanheryanto.startnotes.database.DBContract.TABLE_NOTES;
 
 public class DBHelper extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     public static final String CREATE_TABLE = "CREATE TABLE " + TABLE_NOTES  + "("
             + COLUMN_ID  + " INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -63,7 +65,7 @@ public class DBHelper extends SQLiteOpenHelper {
         onCreate(sqLiteDatabase);
     }
 
-    public void addNotes(TextNotes notes) {
+    public void addTextNotes(TextNotes notes) {
         db = this.getWritableDatabase();
         values = new ContentValues();
         values.put(COLUMN_TITLE, notes.getTitle());
@@ -77,7 +79,7 @@ public class DBHelper extends SQLiteOpenHelper {
         db.close();
     }
 
-    public int updateNotes(TextNotes notes, int id) {
+    public int updateTextNotes(TextNotes notes, int id) {
         db = this.getWritableDatabase();
         values = new ContentValues();
         values.put(COLUMN_TITLE, notes.getTitle());
@@ -92,7 +94,23 @@ public class DBHelper extends SQLiteOpenHelper {
                 new String[] { String.valueOf(id) });
     }
 
-    public void searchNotes(TextNotes notes){
+    public int updateTextNotesWithColor(TextNotes notes, int id, int color) {
+        db = this.getWritableDatabase();
+        values = new ContentValues();
+        values.put(COLUMN_TITLE, notes.getTitle());
+        values.put(COLUMN_DESCRIPTION, notes.getDesccription());
+        values.put(COLUMN_LOCATION, notes.getLocation());
+        values.put(COLUMN_DATE, notes.getDate());
+        values.put(COLUMN_TIME, notes.getTime());
+        values.put(COLUMN_COLOR, color);
+
+
+        return db.update(TABLE_NOTES, values, COLUMN_ID + " = ?",
+                new String[] { String.valueOf(id) });
+    }
+
+
+    public void searchNotes(){
 
     }
 
@@ -114,7 +132,6 @@ public class DBHelper extends SQLiteOpenHelper {
                 notes.setDate(cursor.getString(4));
                 notes.setTime(cursor.getString(5));
                 notes.setColor(Integer.parseInt(cursor.getString(6)));
-
                 listNotes.add(notes);
             } while (cursor.moveToNext());
         }

@@ -20,16 +20,6 @@ public class TextNotes implements Parcelable {
     public TextNotes() {
     }
 
-    public TextNotes(int id, String title, String desccription, String location, String date, String time, int color) {
-        this.id = id;
-        this.title = title;
-        this.desccription = desccription;
-        this.location = location;
-        this.date = date;
-        this.time = time;
-        this.color = color;
-    }
-
     public int getId() {
         return id;
     }
@@ -85,7 +75,6 @@ public class TextNotes implements Parcelable {
     public void setColor(int color) {
         this.color = color;
     }
-
 
     @Override
     public int describeContents() {

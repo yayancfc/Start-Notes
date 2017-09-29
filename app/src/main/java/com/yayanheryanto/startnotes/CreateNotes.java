@@ -1,17 +1,14 @@
 package com.yayanheryanto.startnotes;
 
-import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.support.annotation.ColorInt;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -30,14 +27,9 @@ import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Status;
-import com.google.android.gms.location.places.AutocompleteFilter;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocomplete;
-import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
-import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.thebluealliance.spectrum.SpectrumDialog;
-import com.yayanheryanto.startnotes.MainActivity;
-import com.yayanheryanto.startnotes.R;
 import com.yayanheryanto.startnotes.database.DBHelper;
 import com.yayanheryanto.startnotes.model.TextNotes;
 
@@ -57,6 +49,7 @@ public class CreateNotes extends AppCompatActivity implements View.OnClickListen
     private String jam, tanggal;
     private int warna;
     private TextNotes notes;
+    private boolean PICK_COLOR = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,13 +76,15 @@ public class CreateNotes extends AppCompatActivity implements View.OnClickListen
             txtPlace.setText(notes.getLocation());
             txtDate.setText(notes.getDate());
             txtTime.setText(notes.getTime());
-            notesLayout.setBackgroundColor(notes.getColor());
-            getSupportActionBar().setBackgroundDrawable(new ColorDrawable(notes.getColor()));
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                Window window = getWindow();
-                window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-                window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-                window.setStatusBarColor(notes.getColor());
+            if (notes.getColor()!=0) {
+                notesLayout.setBackgroundColor(notes.getColor());
+                getSupportActionBar().setBackgroundDrawable(new ColorDrawable(notes.getColor()));
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    Window window = getWindow();
+                    window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+                    window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+                    window.setStatusBarColor(notes.getColor());
+                }
             }
             Log.d("MAIN DATA", notes.getTitle() + " " + notes.getId());
         }
@@ -158,6 +153,7 @@ public class CreateNotes extends AppCompatActivity implements View.OnClickListen
             @Override
             public void onColorSelected(boolean positiveResult, @ColorInt int color) {
                 if (positiveResult) {
+                    PICK_COLOR = true;
                     warna = color;
                     notesLayout.setBackgroundColor(color);
                     getSupportActionBar().setBackgroundDrawable(new ColorDrawable(color));
@@ -277,13 +273,29 @@ public class CreateNotes extends AppCompatActivity implements View.OnClickListen
             note.setColor(warna);
 
             if (notes==null) {
-                db.addNotes(note);
+                if (note.getDate() != null && note.getTime()==null){
+                    Toast.makeText(this, "Isi waktu", Toast.LENGTH_SHORT).show();
+                }else if (note.getDate() == null && note.getTime()!=null){
+                    Toast.makeText(this, "Isi Tanggal", Toast.LENGTH_SHORT).show();
+                }else {
+                    db.addTextNotes(note);
+                    Toast.makeText(this, "Notes Saved", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(CreateNotes.this, MainActivity.class);
+                    startActivity(intent);
+                    finish();
+                }
             }else {
-                db.updateNotes(note,notes.getId());
+                if (PICK_COLOR) {
+                    db.updateTextNotes(note, notes.getId());
+                    Toast.makeText(this, "Notes Updated", Toast.LENGTH_SHORT).show();
+                }else {
+                    db.updateTextNotesWithColor(note, notes.getId(), notes.getColor());
+                    Toast.makeText(this, "Notes Updated", Toast.LENGTH_SHORT).show();
+                }
+                Intent intent = new Intent(CreateNotes.this, MainActivity.class);
+                startActivity(intent);
+                finish();
             }
-            Intent intent = new Intent(CreateNotes.this, MainActivity.class);
-            startActivity(intent);
-            finish();
 
         }
     }
